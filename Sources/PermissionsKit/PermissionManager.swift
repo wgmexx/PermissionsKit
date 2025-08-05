@@ -2,8 +2,9 @@ import UIKit
 import AVFoundation
 import Photos
 
+@MainActor
 public final class PermissionManager: ObservableObject {
-    
+
     public enum PermissionStatus {
         case authorized
         case denied
@@ -11,9 +12,9 @@ public final class PermissionManager: ObservableObject {
     }
 
     public static let shared = PermissionManager()
-    
+
     private init() {}
-    
+
     public func requestCameraPermission(completion: @escaping (Bool, Bool) -> Void) {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
         switch status {
@@ -25,13 +26,17 @@ public final class PermissionManager: ObservableObject {
                     completion(granted, false)
                 }
             }
-        case .denied, .restricted, @unknown default:
+        case .denied, .restricted:
+            DispatchQueue.main.async {
+                completion(false, true)
+            }
+        @unknown default:
             DispatchQueue.main.async {
                 completion(false, true)
             }
         }
     }
-    
+
     public func requestPhotoLibraryPermission(completion: @escaping (Bool, Bool) -> Void) {
         let status = PHPhotoLibrary.authorizationStatus()
         switch status {
@@ -43,22 +48,28 @@ public final class PermissionManager: ObservableObject {
                     completion(newStatus == .authorized || newStatus == .limited, false)
                 }
             }
-        case .denied, .restricted, @unknown default:
+        case .denied, .restricted:
+            DispatchQueue.main.async {
+                completion(false, true)
+            }
+        @unknown default:
             DispatchQueue.main.async {
                 completion(false, true)
             }
         }
     }
-    
+
     public func openAppSettings() {
         guard let settingsUrl = URL(string: UIApplication.openSettingsURLString),
               UIApplication.shared.canOpenURL(settingsUrl) else { return }
-        
+
         UIApplication.shared.open(settingsUrl)
     }
-    
+
     public func handleMediaAccess(
         sourceType: UIImagePickerController.SourceType,
+        cameraDeniedMessage: String = "Camera access is required to take photos. Please enable it in Settings.",
+        photoLibraryDeniedMessage: String = "Photo library access is required. Please enable it in Settings.",
         onGranted: @escaping () -> Void,
         onDenied: @escaping (_ message: String) -> Void
     ) {
@@ -68,7 +79,7 @@ public final class PermissionManager: ObservableObject {
                 if granted {
                     onGranted()
                 } else if shouldShowSettings {
-                    onDenied("Camera access is required to take photos. Please enable it in Settings.")
+                    onDenied(cameraDeniedMessage)
                 }
             }
         case .photoLibrary, .savedPhotosAlbum:
@@ -76,7 +87,7 @@ public final class PermissionManager: ObservableObject {
                 if granted {
                     onGranted()
                 } else if shouldShowSettings {
-                    onDenied("Photo library access is required. Please enable it in Settings.")
+                    onDenied(photoLibraryDeniedMessage)
                 }
             }
         @unknown default:

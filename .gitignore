@@ -1,8 +1,41 @@
+# Xcode
 .DS_Store
-/.build
-/Packages
-xcuserdata/
+*.xcworkspace
+*.xcuserdata
+*.xcuserstate
+*.xcuserdatad
+*.xccheckout
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# SwiftPM
+.build/
+.swiftpm/xcode/
+
+# Derived data
 DerivedData/
-.swiftpm/configuration/registries.json
-.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
-.netrc
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Logs
+*.log
+
+# SwiftLint cache
+.swiftlint.cache
+
+# Archives
+*.ipa
+*.xcarchive
+
+# macOS metadata
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# User-specific files
+*.orig
